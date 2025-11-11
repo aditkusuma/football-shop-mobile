@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:football_shop/widgets/product_card.dart';
+import 'package:football_shop/widgets/left_drawer.dart';
 
 class MyHomePage extends StatelessWidget {
      MyHomePage({super.key, required ColorScheme colorScheme}); //sudah ada pada code sebelumnya
@@ -9,7 +11,7 @@ class MyHomePage extends StatelessWidget {
     
     final List<ItemHomepage> items = [
     ItemHomepage("All Products", Icons.storefront, Colors.blue.shade600),
-    ItemHomepage("Create Product", Icons.add_box, Colors.red.shade500),
+    ItemHomepage("Add Product", Icons.add_box, Colors.red.shade500),
     ItemHomepage("My Products", Icons.inventory_2, Colors.green.shade600),
     ];
     @override
@@ -30,6 +32,7 @@ class MyHomePage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       // Body halaman dengan padding di sekelilingnya.
+      drawer: LeftDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         // Menyusun widget secara vertikal dalam sebuah kolom.
@@ -92,67 +95,6 @@ class MyHomePage extends StatelessWidget {
   }
 } 
 
-class ItemHomepage {
- final String name;
- final IconData icon;
- final Color color;
-
- ItemHomepage(this.name, this.icon, this.color);
-}
-
-class ItemCard extends StatelessWidget {
-  // Menampilkan kartu dengan ikon dan nama.
-
-  final ItemHomepage item; 
-  
-  const ItemCard(this.item, {super.key}); 
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      // Menentukan warna latar belakang dari tema aplikasi.
-      color: item.color,
-      // Membuat sudut kartu melengkung.
-      borderRadius: BorderRadius.circular(12),
-      
-      child: InkWell(
-        // Aksi ketika kartu ditekan.
-        onTap: () {
-          // Menampilkan pesan SnackBar saat kartu ditekan.
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text("You have pressed the ${item.name} button!"))
-            );
-        },
-        // Container untuk menyimpan Icon dan Text
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          child: Center(
-            child: Column(
-              // Menyusun ikon dan teks di tengah kartu.
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  item.icon,
-                  color: Colors.white,
-                  size: 30.0,
-                ),
-                const Padding(padding: EdgeInsets.all(3)),
-                Text(
-                  item.name,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  
-}
 
 class InfoCard extends StatelessWidget {
   // Kartu informasi yang menampilkan title dan content.
