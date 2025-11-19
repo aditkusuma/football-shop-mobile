@@ -12,7 +12,7 @@ class MyHomePage extends StatelessWidget {
     final List<ItemHomepage> items = [
     ItemHomepage("All Products", Icons.storefront, Colors.blue.shade600),
     ItemHomepage("Add Product", Icons.add_box, Colors.red.shade500),
-    ItemHomepage("My Products", Icons.inventory_2, Colors.green.shade600),
+    ItemHomepage("Logout", Icons.inventory_2, Colors.green.shade600),
     ];
     @override
     Widget build(BuildContext context) {

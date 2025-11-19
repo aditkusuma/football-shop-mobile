@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:football_shop/widgets/left_drawer.dart';
+import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:football_shop/screens/menu.dart';
 
 class ProductFormPage extends StatefulWidget {
   const ProductFormPage({super.key});
@@ -15,6 +19,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
   String _description = "";
   String _category = "shirt"; // must exist in _categories
   String _thumbnail = "";
+  double _price = 0.0;
   bool _isFeatured = false;
 
   final List<String> _categories = [
@@ -33,12 +38,14 @@ class _ProductFormPageState extends State<ProductFormPage> {
       _description = "";
       _category = _categories.first;
       _thumbnail = "";
+      _price = 0.0;
       _isFeatured = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
     return Scaffold(
       appBar: AppBar(
         title: const Center(child: Text('Add Product Form')),
@@ -150,6 +157,36 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 ),
               ),
 
+              // === Price ===
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    hintText: "Price (e.g. 19.99)",
+                    labelText: "Price",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (String? value) {
+                      setState(() {
+                        _price = double.tryParse((value ?? '').replaceAll(',', '.')) ?? 0.0;
+                      });
+                    },
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Price cannot be empty!";
+                    }
+                    final parsed = double.tryParse(value.replaceAll(',', '.'));
+                    if (parsed == null || parsed < 0) {
+                      return "Enter a valid price";
+                    }
+                    return null;
+                  },
+                ),
+              ),
+
               // === Is Featured ===
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -174,40 +211,43 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       backgroundColor:
                           MaterialStateProperty.all(Colors.indigo),
                     ),
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title:
-                                  const Text('Product saved successfully!'),
-                              content: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Name: $_name'),
-                                    Text('Description: $_description'),
-                                    Text('Category: $_category'),
-                                    Text('Thumbnail: $_thumbnail'),
-                                    Text(
-                                      'Featured: ${_isFeatured ? "Yes" : "No"}',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  child: const Text('OK'),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
-                            );
-                          },
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        // TODO: Replace the URL with your app's URL
+                        // To connect Android emulator with Django on localhost, use URL http://10.0.2.2/
+                        // If you using chrome, use URL http://localhost:8000
+
+                        final response = await request.postJson(
+                          "http://localhost:8000/create-flutter/",
+                          jsonEncode({
+                            "name": _name,
+                            "description": _description,
+                            "thumbnail": _thumbnail,
+                            "category": _category,
+                            "is_featured": _isFeatured,
+                            "price": _price,
+                          }),
                         );
-                        _resetForm();
+
+                        if (context.mounted) {
+                          if (response['status'] == 'success') {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text("Product successfully saved!"),
+                            ));
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MyHomePage(colorScheme: Theme.of(context).colorScheme),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text("Something went wrong, please try again."),
+                            ));
+                          }
+                        }
                       }
                     },
                     child: const Text(
